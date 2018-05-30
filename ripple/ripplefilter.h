@@ -56,7 +56,7 @@ void                    rfilter_destroy (ripple_filter_t* filter);
 typedef struct _ripple_params_t ripple_params_t;
 
 // Create new ripple parameter estimator
-ripple_params_t*     rparams_new (int datalen);
+ripple_params_t*     rparams_new (int datalen, double thresholdcontrol);
 
 // Add value to parameter estimator. 
 // - Parameters will be automatically calculated once number of data reaches `datalen`
@@ -75,6 +75,9 @@ double                  rparams_mean (ripple_params_t* params);
 
 // Returns the estimated standard deviation
 double                  rparams_stdev (ripple_params_t* params);
+
+// Returns the threshold a value has to exceed for a ripple to occur
+double                  rparams_threshold(ripple_params_t* params);
 
 // Destroy ripple parameter estimator and set pointer to NULL
 void                    rparams_destroy (ripple_params_t* params);

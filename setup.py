@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 os.chdir(os.path.dirname(sys.argv[0]) or ".")
 
 setup(
-    name="ripple-filter",
+    name="ripple",
     version="0.1",
     description="Ripple detection classes, taken from Kemere Lab implementation",
     long_description=

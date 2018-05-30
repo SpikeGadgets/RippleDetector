@@ -157,13 +157,15 @@ void rfilter_destroy(ripple_filter_t* filter){
 
 struct _ripple_params_t{
     double *datavec;
+    double threshcontrol;
     int datalen;
     int cur;
     double mean;
     double stdev;
+    double ripplethresh;
 };
 
-ripple_params_t* rparams_new (int datalen){
+ripple_params_t* rparams_new (int datalen, double thresholdcontrol){
     if(datalen <= 0)
         return NULL;
 
@@ -180,7 +182,7 @@ ripple_params_t* rparams_new (int datalen){
     }
     params->mean = 0.0;
     params->stdev = 0.0;
-
+    params->threshcontrol = thresholdcontrol;
     return params;
 }
 
@@ -212,6 +214,9 @@ void rparams_update (ripple_params_t* params, double data){
         }
         params->stdev /= (double)params->datalen;
         params->stdev = sqrt(params->stdev);
+
+        //calc threshold
+        params->ripplethresh = params->mean + params->threshcontrol * params->stdev;
     }
 }
 
@@ -231,6 +236,10 @@ double rparams_mean (ripple_params_t* params){
 
 double rparams_stdev (ripple_params_t* params){
     return params->stdev;
+}
+
+double rparams_threshold(ripple_params_t* params){
+    return params->ripplethresh;
 }
 
 void rparams_destroy (ripple_params_t* params){

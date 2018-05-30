@@ -10,7 +10,7 @@ with open("ripple/ripplefilter.h") as f:
 
 with open("ripple/ripplefilter.c") as f:
     src = f.read().split("///_PYTHONCFFI")[1]
-    ffibuilder.set_source("_ripplefilter",header + src)
+    ffibuilder.set_source("_ripplefilter",header + src, extra_compile_args = "-O2")
 
 
 if __name__ == "__main__":
