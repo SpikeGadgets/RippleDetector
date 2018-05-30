@@ -14,4 +14,4 @@ with open("ripple/ripplefilter.c") as f:
 
 
 if __name__ == "__main__":
-    ffibuilder.compile()
+    ffibuilder.compile(verbose=True)

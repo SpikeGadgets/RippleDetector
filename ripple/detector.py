@@ -1,5 +1,5 @@
-from ripple.ripplefilter import *
-from ripple.rippleparams import *
+from ripple.filter import *
+from ripple.params import *
 
 class RippleDetector():
     def __init__(self, estimationlen, threshmultiplier):

@@ -31,6 +31,12 @@ setup(
     - ripple filter (bandwidth + lowpass filter), implemented in c for speed
     - mean/sd calculation classes
     - ripple detector class
+
+    Example code: 
+    >>> from ripple import filter, params, detector
+    >>> rd = detector.RippleDetector(estimation_length, thresh_multiplier)
+    >>> rd.rippledetection(1234)
+
     [1] https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf
     """,
     author="Kevin Wang",
