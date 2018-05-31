@@ -1,11 +1,11 @@
-#include "ripplefilter.h"
+#include "ripple/ripplefilter.h"
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
 void performanceTest(int nints){
     ripple_filter_t* filter = rfilter_new();
-    ripple_params_t* params = rparams_new(nints);
+    ripple_params_t* params = rparams_new(nints, 50);
     int16_t *ints = (int16_t*)malloc(sizeof(int16_t)*nints);
     int i;
     for(i = 0; i < nints; ++i){

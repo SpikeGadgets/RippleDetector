@@ -48,6 +48,24 @@ void                    rfilter_destroy (ripple_filter_t* filter);
 
 
 
+/* Integer only Ripple Filter
+ * Bandpass 30 tap FIR filter followed by a lowpass 33 tap FIR filter
+ */ 
+
+// Struct ripple_filter_t holds coefficients and history
+typedef struct _ripple_intfilter_t ripple_intfilter_t;
+
+// Create new ripple filter
+ripple_intfilter_t*     rintfilter_new (void);
+
+// Update filter with new int16 value, returning filtered value as double
+int16_t                 rintfilter_update (ripple_intfilter_t* filter, int16_t data);
+
+// Destroy ripple filter and set pointer to NULL
+void                    rintfilter_destroy (ripple_intfilter_t* filter);
+
+
+
 /* Ripple Parameter Training
  * Basic mean and standard deviation calculations. 
  */ 

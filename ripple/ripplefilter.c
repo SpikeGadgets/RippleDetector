@@ -19,15 +19,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
+#include <limits.h>
 #define BPTAPS 30
 #define LPTAPS 33
 
-struct _ripple_filter_t{
-    double bp_in[BPTAPS];
-    double lp_in[LPTAPS];
-    int buff_loc_bp, buff_loc_lp;
-};
 static const double filter_taps_bp[BPTAPS] = {
         0.006948895259200861,
         0.006926234072844102,
@@ -96,6 +91,34 @@ static const double filter_taps_lp[LPTAPS] = {
         0.0108532903,
         0.0203770957
     };
+
+static const int16_t intfilter_taps_bp[BPTAPS] = {
+228, 227, 200, 62, -268,  -810, -1471, -2052, -2296,-1988, 
+-1051, 395, 2043, 3479, 4314, 4314, 3479, 2043,395, -1051, 
+-1988, -2296, -2052, -1471, -810, -268, 62, 200, 227, 228
+};
+
+static const int16_t intfilter_taps_lp[LPTAPS] = {
+668,  356,  442,  536,  634,  736,  840,  944, 1044, 1139, 1228,
+1306, 1374, 1428, 1468, 1492, 1500, 1492, 1468, 1428, 1374, 1306,
+1228, 1139, 1044,  944,  840,  736,  634,  536,  442,  356,  668
+};
+
+static int16_t sabs(int16_t i){
+    int16_t res;
+    if (SHRT_MIN == i)
+        res = SHRT_MAX;
+    else
+        res = i < 0 ? -i : i;
+    return res;
+}
+// ***********************************************************
+struct _ripple_filter_t{
+    double bp_in[BPTAPS];
+    double lp_in[LPTAPS];
+    int buff_loc_bp, buff_loc_lp;
+};
+
 ripple_filter_t* rfilter_new(void){
     ripple_filter_t* filt = (ripple_filter_t*)malloc(sizeof(ripple_filter_t));
     if(filt == NULL)
@@ -155,6 +178,71 @@ void rfilter_destroy(ripple_filter_t* filter){
     free(filter);
 }
 
+// ***********************************************************
+struct _ripple_intfilter_t{
+    int16_t bp_in[BPTAPS];
+    int16_t lp_in[LPTAPS];
+    int buff_loc_bp, buff_loc_lp;
+};
+
+ripple_intfilter_t* rintfilter_new(void){
+    ripple_intfilter_t* filt = (ripple_intfilter_t*)malloc(sizeof(ripple_intfilter_t));
+    if(filt == NULL)
+        return NULL;
+    filt->buff_loc_bp = 0;
+    filt->buff_loc_lp = 0;
+    memset(filt->bp_in, 0, BPTAPS*sizeof(int16_t));
+    memset(filt->lp_in, 0, LPTAPS*sizeof(int16_t));
+    return filt;
+}
+
+int16_t rintfilter_update(ripple_intfilter_t* filt, int16_t data){
+    //https://sestevenson.wordpress.com/2009/10/08/implementation-of-fir-filtering-in-c-part-2/
+    //
+    int32_t out = 1 << 14;
+
+    //Bandpass filter
+    int16_t *buf_val = filt->bp_in + filt->buff_loc_bp;
+    *buf_val = data;
+    const int16_t *coeff = intfilter_taps_bp;
+    const int16_t *coeff_end = intfilter_taps_bp + BPTAPS/*num filter taps*/;
+
+    while(buf_val >= filt->bp_in){
+        out += (int32_t)(*buf_val--) * (int32_t)(*coeff++);
+    }
+    buf_val = filt->bp_in + BPTAPS/*num filter taps*/-1;
+    while(coeff < coeff_end){
+        out += (int32_t)(*buf_val--) * (int32_t)(*coeff++);
+    }
+    if(++filt->buff_loc_bp >= BPTAPS/*num filter taps*/)
+        filt->buff_loc_bp = 0;
+
+
+    //Lowpass filter
+    int16_t *buf_val_lp = filt->lp_in+filt->buff_loc_lp;
+    *buf_val_lp = sabs((int16_t)(out >> 15));
+    out = 1<<14;
+    const int16_t *coeff_lp = intfilter_taps_lp;
+    const int16_t *coeff_end_lp = intfilter_taps_lp + LPTAPS/*num filter taps*/;
+    while(buf_val_lp >= filt->lp_in){
+        out += (int32_t)(*buf_val_lp--) * (int32_t)(*coeff_lp++);
+    }
+    buf_val_lp = filt->lp_in + LPTAPS/*num filter taps*/-1;
+    while(coeff_lp < coeff_end_lp){
+        out += (int32_t)(*buf_val_lp--) * (int32_t)(*coeff_lp++);
+    }
+
+    if(++filt->buff_loc_lp >= LPTAPS/*num filter taps*/)
+        filt->buff_loc_lp = 0;
+
+    return (int16_t)(out>>15);
+}
+
+void rintfilter_destroy(ripple_intfilter_t *filter){
+    free(filter);
+}
+
+// ***********************************************************
 struct _ripple_params_t{
     double *datavec;
     double threshcontrol;
