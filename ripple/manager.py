@@ -117,9 +117,10 @@ if __name__ == "__main__":
     net = RippleClient("Rippleclient", "tcp://127.0.0.1", 49152)
     net.initialize()
 
-    rm = RippleManager([5,6,7,8], 2, traininglength=3*60*1000)
+    rm = RippleManager(ntrodes=[5,6,7,8], minimumdetected=2, traininglength=3*60*1000) # 3 minutes * 60s * 1000ms
     rm.initstreams(net)
     net.setTerminateCallback(rm.terminatecb)
+    
     rm.main_loop()
 
     del net

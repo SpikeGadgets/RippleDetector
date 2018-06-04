@@ -1,6 +1,6 @@
 # Sharp-Wave Ripple Detector
 
-Python and C code that is used to detect ripples. Ripple filter and detection implementation is from the Kemere Lab at Rice University [1](https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf)
+Python and C code that is used to detect ripples. Ripple filter and detection implementation is from the Kemere Lab at Rice University [[1]](#References)
 
 - Jun 04, 2018: Finished and seems like it works, but actual accuracy hasn't been verified yet
 
@@ -32,6 +32,10 @@ To test, open Trodes, version 2.0-alpha, open a .rec file, and then run your pyt
 
 ## C filter
 
-Filter and parameter estimation is implemented in C for speed and then used in Python via CFFI package.
+Filter and parameter estimation is implemented in C for speed and then used in Python via CFFI package. We also have an option for an integer filter, in cases where floating math is not supported like microcontrollers or FPGAs.[[2]](#References)
 
-[1] [Analysis of an open source, closed-loop, realtime system for hippocampal sharp-wave ripple disruption](https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf)
+## References
+
+[[1] Analysis of an open source, closed-loop, realtime system for hippocampal sharp-wave ripple disruption](https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf)
+
+[[2] Implementation of FIR Filtering in C (Part 2)](https://sestevenson.wordpress.com/2009/10/08/implementation-of-fir-filtering-in-c-part-2/)
