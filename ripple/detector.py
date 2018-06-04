@@ -2,7 +2,7 @@ from ripple.filter import *
 from ripple.params import *
 
 class RippleDetector():
-    def __init__(self, estimationlen, threshmultiplier):
+    def __init__(self, estimationlen, threshmultiplier=4):
         self.rfilter = RippleFilter()
         self.rparams = RippleParams(estimationlen, threshmultiplier)
         self.isTraining = True
@@ -12,17 +12,17 @@ class RippleDetector():
         - If params not finished, add to params
         - Else, check with threshold"""
     def rippledetection(self, value):
+        filtereddata = self.rfilter.update(value)
         if self.isTraining:
-            self.rparams.update(value)
+            self.rparams.update(filtereddata)
             if self.rparams.estimated():
                 self.isTraining = False
                 self.rippleThreshold = self.rparams.threshold()
+                # print("Threshold set at ", self.rippleThreshold, " Mean: ", self.rparams.mean(), " Stdev: ", self.rparams.stdev())
             return False
-        else:
-            filtereddata = self.rfilter.update(value)
-            if filtereddata > self.rippleThreshold:
-                return True
+        elif filtereddata > self.rippleThreshold:
             return True
+        return False
 
     """Reset the ripple parameters and re-estimate them"""
     def reestimateParams(self):
