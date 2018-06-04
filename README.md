@@ -1,6 +1,8 @@
 # Sharp-Wave Ripple Detector
 
-Python and C code that is used to detect ripples. Ripple filter and detection implementation is from the Kemere Lab at Rice University [1]
+Python and C code that is used to detect ripples. Ripple filter and detection implementation is from the Kemere Lab at Rice University [1](https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf)
+
+- Jun 04, 2018: Finished and seems like it works, but actual accuracy hasn't been verified yet
 
 ## Installing
 
@@ -26,7 +28,7 @@ python3 setup.py install
 
 Developed and tested on Ubuntu 16.04 using the system-included Python3.
 
-- Jun 04, 2018: Finished and seems like it works, but actual accuracy hasn't been verified yet
+To test, open Trodes, version 2.0-alpha, open a .rec file, and then run your python code. For a very simple example, refer to the code at the bottom of `manager.py`.
 
 ## C filter
 
