@@ -1,6 +1,5 @@
 from ripple.filter import *
 from ripple.params import *
-
 class RippleDetector():
     def __init__(self, estimationlen, threshmultiplier=4):
         self.rfilter = RippleFilter()
@@ -18,7 +17,7 @@ class RippleDetector():
             if self.rparams.estimated():
                 self.isTraining = False
                 self.rippleThreshold = self.rparams.threshold()
-                # print("Threshold set at ", self.rippleThreshold, " Mean: ", self.rparams.mean(), " Stdev: ", self.rparams.stdev())
+                print("Threshold set at ", self.rippleThreshold, " Mean: ", self.rparams.mean(), " Stdev: ", self.rparams.stdev())
             return False
         elif filtereddata > self.rippleThreshold:
             return True
