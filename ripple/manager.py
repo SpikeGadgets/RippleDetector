@@ -21,6 +21,8 @@ class VelocityCalculator():
         self.framerate = framerate
         self.perframe = 1/framerate
     def calculateVelocity(self, x, y):
+        # Current velocity is basically by pixels
+        # TODO Add pixels to real distance conversion
         dist = np.sqrt((self.lastx-x)**2 + (self.lasty-y)**2)
         vel = dist/self.perframe
         self.lastx = x
@@ -36,8 +38,6 @@ class RippleManager():
     - If true, does position/velocity tracking
     """
     def __init__(self,ntrodes, minimumdetected=1, within=15, traininglength=20*60*1000, lockoutlength=200, threshmultiplier =4, positiontracking=False, velocitythresh = 200, videoframerate = 30, timestampconverter = 30000):
-        # self.network = network
-        # network.setTerminateCallback(self.terminatecb)
         self.samplingrate = 3000
         self.ntrodes = ntrodes
         self.numntrodes = len(ntrodes)
@@ -72,7 +72,6 @@ class RippleManager():
         # (ntrodes x historylength) ringbuffer
         self.detecthistory = np.zeros((self.numntrodes, self.historylength), dtype=np.bool)
         self.histIndex = 0 #use as ringbuffer
-        self.dataread = 0
 
     """Initialize data streams from Trodes and possibly cameramodule"""
     def initstreams(self, network):
@@ -88,7 +87,6 @@ class RippleManager():
             nbytesize = self.positionstream.getDataType().byteSize
             buf = memoryview(bytes(nbytesize))
             self.posbuf = np.frombuffer(buf, dtype=np.dtype(ndtype))
-            # self.vels = []
 
     def terminatecb(self):
         if not self.terminate:
@@ -118,11 +116,14 @@ class RippleManager():
         self.detecthistory = np.zeros((self.numntrodes, self.historylength), dtype=np.bool)
         self.histIndex = 0 #use as ringbuffer
         self.terminate = False
+        self.lockoutTime = 0
+        self.lockedOut = False
 
     def main_loop(self):
         timestamp = []
 
         while not self.terminate:
+            # First update the velocity if any position data came in
             if self.positiontracking:
                 n = self.positionstream.available(1)
                 for i in range(n):
@@ -131,18 +132,21 @@ class RippleManager():
                     # self.vels.append(self.velcalc.velocity)
 
             n = self.lfpstream.available(1)
+            # Get new lfp data
             for i in range(n):
                 timestamp = self.lfpstream.getData()
-                self.dataread += 1
 
+                # Update filters and check detection for each ntrode
                 for i in range(self.numntrodes):
                     r = self.detectors[i].rippledetection(self.buf[i])
                     self.detecthistory[i][self.histIndex] = r
                     self.histIndex = (self.histIndex+1)%self.historylength
 
+                # Reset lockout if enough time has passed
                 if self.lockoutTime + self.lockoutlength < timestamp.trodes_timestamp:
                     self.lockedOut = False
 
+                # Check if ripple detected, print out, and set lockout
                 if self.isrippleDetected():
                     print(timestamp.trodes_timestamp, "RIPPLE DETECTED")
                     self.lockedOut = True
