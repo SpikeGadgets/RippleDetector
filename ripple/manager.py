@@ -125,7 +125,7 @@ class RippleManager():
         while not self.terminate:
             # First update the velocity if any position data came in
             if self.positiontracking:
-                n = self.positionstream.available(1)
+                n = self.positionstream.available(0)
                 for i in range(n):
                     byteswritten = self.positionstream.readData(self.posbuf)
                     self.velcalc.calculateVelocity(self.posbuf[0][3], self.posbuf[0][4])
@@ -148,7 +148,7 @@ class RippleManager():
 
                 # Check if ripple detected, print out, and set lockout
                 if self.isrippleDetected():
-                    print(timestamp.trodes_timestamp, "RIPPLE DETECTED")
+                    print(timestamp.trodes_timestamp, "RIPPLE DETECTED. Latency:", tnp.systemTimeMSecs()-timestamp.system_timestamp)
                     self.lockedOut = True
                     self.lockoutTime = timestamp.trodes_timestamp
 
