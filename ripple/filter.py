@@ -12,6 +12,8 @@ class RippleFilter():
     def update(self, value):
         return lib.rfilter_update(self._p, value)
 
+    def reset(self, value):
+        lib.rfilter_reset(self._p)
 
 class RippleIntFilter():
     """Ripple filter for spikegadgets ripple package. 

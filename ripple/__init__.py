@@ -4,3 +4,4 @@ from ripple.filter import *
 from ripple.params import *
 from ripple.detector import *
 from ripple.manager import *
+from ripple.ripplemodule import *

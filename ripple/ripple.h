@@ -29,19 +29,73 @@ extern "C" {
  * https://www.biorxiv.org/content/biorxiv/early/2018/04/11/298661.full.pdf
  */ 
 
+// Struct ripple_manager_t manages detectors across multiple channels
+typedef struct _ripple_manager_t ripple_manager_t;
 
-/* Ripple Filter
- * Bandpass 30 tap FIR filter followed by a lowpass 33 tap FIR filter
- */ 
+// Struct ripple_detector_t detects ripples for one channel
+typedef struct _ripple_detector_t ripple_detector_t;
 
 // Struct ripple_filter_t holds coefficients and history
 typedef struct _ripple_filter_t ripple_filter_t;
 
+// Struct ripple_filter_t holds coefficients and history
+typedef struct _ripple_intfilter_t ripple_intfilter_t;
+
+// Struct ripple_param_est_t holds 
+typedef struct _ripple_params_t ripple_params_t;
+
+
+/* Multi channel ripple detector manager
+ * Manages multiple detectors and checks ripples across them
+ * Also can be configured to take in position data
+ */
+// Create new ripple manager
+ripple_manager_t*       rmanager_new (int ntrodes, int mindetected, int trainingsamples, int sdthreshold, int samplehistory);
+
+// Enable or disable using velocity calculations in detection
+void                    rmanager_useposition(ripple_manager_t* manager, unsigned char enable, double velocitythresh);
+
+// Update position data. Converts to velocity, to be used in determining
+void                    rmanager_position(ripple_manager_t* manager, int16_t x, int16_t y);
+
+// Update all ntrodes' lfp data. Data must be of length ntrodes, and values will be directly fed into detectors
+void                    rmanager_lfpdata (ripple_manager_t* manager, int16_t *data);
+
+// Checks for ripples given current state of manager
+int                     rmanager_checkripples(ripple_manager_t* manager);
+
+void                    rmanager_reset(ripple_manager_t* manager);
+// Destroy ripple manager
+void                    rmanager_destroy (ripple_manager_t* manager);
+
+
+/* Single channel ripple detector
+ * Filters, trains, and checks threshold
+ */ 
+// Create new ripple detector
+ripple_detector_t*      rdetector_new (int trainingsamples, int sdthreshold);
+
+// Update filters. If training, train. If detecting, check threshold
+unsigned char           rdetector_detect (ripple_detector_t* detector, int16_t data);
+
+// Reset detector
+void                    rdetector_reset(ripple_detector_t* detector);
+
+// Destroy ripple detector and set pointer to NULL
+void                    rdetector_destroy (ripple_detector_t* detector);
+
+
+/* Ripple Filter
+ * Bandpass 30 tap FIR filter followed by a lowpass 33 tap FIR filter
+ */ 
 // Create new ripple filter
 ripple_filter_t*        rfilter_new (void);
 
 // Update filter with new int16 value, returning filtered value as double
 double                  rfilter_update (ripple_filter_t* filter, int16_t data);
+
+// Reset filter values
+void                    rfilter_reset (ripple_filter_t* filter);
 
 // Destroy ripple filter and set pointer to NULL
 void                    rfilter_destroy (ripple_filter_t* filter);
@@ -51,10 +105,6 @@ void                    rfilter_destroy (ripple_filter_t* filter);
 /* Integer only Ripple Filter
  * Bandpass 30 tap FIR filter followed by a lowpass 33 tap FIR filter
  */ 
-
-// Struct ripple_filter_t holds coefficients and history
-typedef struct _ripple_intfilter_t ripple_intfilter_t;
-
 // Create new ripple filter
 ripple_intfilter_t*     rintfilter_new (void);
 
@@ -69,10 +119,6 @@ void                    rintfilter_destroy (ripple_intfilter_t* filter);
 /* Ripple Parameter Training
  * Basic mean and standard deviation calculations. 
  */ 
-
-// Struct ripple_param_est_t holds 
-typedef struct _ripple_params_t ripple_params_t;
-
 // Create new ripple parameter estimator
 ripple_params_t*     rparams_new (int datalen, double thresholdcontrol);
 
