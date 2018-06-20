@@ -64,7 +64,9 @@ void                    rmanager_lfpdata (ripple_manager_t* manager, int16_t *da
 // Checks for ripples given current state of manager
 int                     rmanager_checkripples(ripple_manager_t* manager);
 
+// Resets all data
 void                    rmanager_reset(ripple_manager_t* manager);
+
 // Destroy ripple manager
 void                    rmanager_destroy (ripple_manager_t* manager);
 

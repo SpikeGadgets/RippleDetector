@@ -2,6 +2,7 @@
 
 Python and C code that is used to detect ripples. Ripple filter and detection implementation is from the Kemere Lab at Rice University [[1]](#References)
 
+- Jun 19, 2018: Compared to Frank lab implementation and works well. all major ripples are detected by both. False positives haven't been tested yet, since they must be done manually
 - Jun 04, 2018: Finished and seems like it works, but actual accuracy hasn't been verified yet
 
 ## Installing

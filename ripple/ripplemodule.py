@@ -86,7 +86,7 @@ class RippleModule():
                 timestamp = self.lfpstream.getData()
 
                 # Update filters and check detection for each ntrode
-                self.manager.lfpdata(self.buf)                
+                self.manager.lfpdata(self.buf)
 
                 # Reset lockout if enough time has passed
                 if self.lockoutTime + self.lockoutlength < timestamp.trodes_timestamp:
