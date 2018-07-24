@@ -4,11 +4,11 @@ ffibuilder = cffi.FFI()
 header = ""
 src = ""
 
-with open("ripple/ripple.h") as f:
+with open("ripple/rippleint.h") as f:
     header = f.read().split("///_PYTHONCFFI")[1]
     ffibuilder.cdef(header)
 
-with open("ripple/ripple.c") as f:
+with open("ripple/rippleint.c") as f:
     src = f.read().split("///_PYTHONCFFI")[1]
     ffibuilder.set_source("_ripplefilter",header + src, extra_compile_args = ["-O2"])
 

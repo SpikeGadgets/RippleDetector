@@ -30,7 +30,7 @@ extern "C" {
  */ 
 
 // Struct ripple_manager_t manages detectors across multiple channels
-typedef struct _ripple_intmanager_t ripple_intmanager_t;
+typedef struct _ripple_manager_t ripple_manager_t;
 
 // Struct ripple_detector_t detects ripples for one channel
 typedef struct _ripple_intdetector_t ripple_intdetector_t;
@@ -47,41 +47,41 @@ typedef struct _ripple_intparams_t ripple_intparams_t;
  * Also can be configured to take in position data
  */
 // Create new ripple manager
-ripple_intmanager_t*       rmanager_new (int ntrodes, int mindetected, int trainingsamples, int sdthreshold, int samplehistory);
+ripple_manager_t*     rmanager_new (int ntrodes, int mindetected, int trainingsamples, int sdthreshold, int samplehistory);
 
 // // Enable or disable using velocity calculations in detection
-// void                    rmanager_useposition(ripple_intmanager_t* manager, unsigned char enable, double velocitythresh);
+// void                    rmanager_useposition(ripple_manager_t* manager, unsigned char enable, double velocitythresh);
 
 // // Update position data. Converts to velocity, to be used in determining
-// void                    rmanager_position(ripple_intmanager_t* manager, int16_t x, int16_t y);
+// void                    rmanager_position(ripple_manager_t* manager, int16_t x, int16_t y);
 
 // Update all ntrodes' lfp data. Data must be of length ntrodes, and values will be directly fed into detectors
-void                    rmanager_lfpdata (ripple_intmanager_t* manager, int16_t *data);
+void                    rmanager_lfpdata (ripple_manager_t* manager, int16_t *data);
 
 // Checks for ripples given current state of manager
-int                     rmanager_checkripples(ripple_intmanager_t* manager);
+int                     rmanager_checkripples(ripple_manager_t* manager);
 
 // Resets all data
-void                    rmanager_reset(ripple_intmanager_t* manager);
+void                    rmanager_reset(ripple_manager_t* manager);
 
 // Destroy ripple manager
-void                    rmanager_destroy (ripple_intmanager_t* manager);
+void                    rmanager_destroy (ripple_manager_t* manager);
 
 
 /* Single channel ripple detector
  * Filters, trains, and checks threshold
  */ 
 // Create new ripple detector
-ripple_intdetector_t*      rdetector_new (int trainingsamples, int sdthreshold);
+ripple_intdetector_t*   rintdetector_new (int trainingsamples, int sdthreshold);
 
 // Update filters. If training, train. If detecting, check threshold
-unsigned char           rdetector_detect (ripple_intdetector_t* detector, int16_t data);
+unsigned char           rintdetector_detect (ripple_intdetector_t* detector, int16_t data);
 
 // Reset detector
-void                    rdetector_reset(ripple_intdetector_t* detector);
+void                    rintdetector_reset(ripple_intdetector_t* detector);
 
 // Destroy ripple detector and set pointer to NULL
-void                    rdetector_destroy (ripple_intdetector_t* detector);
+void                    rintdetector_destroy (ripple_intdetector_t* detector);
 
 
 
@@ -97,6 +97,7 @@ int16_t                 rintfilter_update (ripple_intfilter_t* filter, int16_t d
 // Destroy ripple filter and set pointer to NULL
 void                    rintfilter_destroy (ripple_intfilter_t* filter);
 
+void                    rintfilter_reset(ripple_intfilter_t* filter);
 
 
 /* Ripple Parameter Training

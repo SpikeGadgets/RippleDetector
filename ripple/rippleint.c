@@ -1,4 +1,5 @@
 #include "rippleint.h"
+///_PYTHONCFFI
 #include <stdlib.h>
 #include <limits.h>
 #define BPTAPS 30
@@ -83,6 +84,13 @@ int16_t rintfilter_update(ripple_intfilter_t* filt, int16_t data){
         filt->buff_loc_lp = 0;
 
     return (int16_t)(out>>15);
+}
+
+void rintfilter_reset(ripple_intfilter_t* filter){
+    filter->buff_loc_bp = 0;
+    filter->buff_loc_lp = 0;
+    memset(filter->bp_in, 0, BPTAPS*sizeof(int16_t));
+    memset(filter->lp_in, 0, LPTAPS*sizeof(int16_t));
 }
 
 void rintfilter_destroy(ripple_intfilter_t *filter){
@@ -190,7 +198,7 @@ struct _ripple_intdetector_t{
 };
 
 // Create new ripple detector
-ripple_intdetector_t* rdetector_new (int trainingsamples, int sdthreshold){
+ripple_intdetector_t* rintdetector_new (int trainingsamples, int sdthreshold){
     if(trainingsamples <= 0){
         return NULL;
     }
@@ -198,46 +206,46 @@ ripple_intdetector_t* rdetector_new (int trainingsamples, int sdthreshold){
         return NULL;
     }
     ripple_intdetector_t* detector = (ripple_intdetector_t*)malloc(sizeof(ripple_intdetector_t));
-    detector->filter = rfilter_new();
+    detector->filter = rintfilter_new();
     if(detector->filter == NULL){
         free(detector);
         return NULL;
     }
-    detector->params = rparams_new(trainingsamples, sdthreshold);
+    detector->params = rintparams_new(trainingsamples, sdthreshold);
     if(detector->params == NULL){
-        rfilter_destroy(detector->filter);
+        rintfilter_destroy(detector->filter);
         free(detector);
         return NULL;
     }
     return detector;
 }
 
-void rdetector_reset(ripple_intdetector_t* detector){
-    rfilter_reset(detector->filter);
-    rparams_reset(detector->params);
+void rintdetector_reset(ripple_intdetector_t* detector){
+    rintfilter_reset(detector->filter);
+    rintparams_reset(detector->params);
 }
 
 // Update filters. If training, train. If detecting, check threshold
-unsigned char rdetector_detect (ripple_intdetector_t* detector, int16_t data){
-    const double filtered = rfilter_update(detector->filter, data);
-    if(rparams_estimated(detector->params)){
-        return filtered >= rparams_threshold(detector->params);
+unsigned char rintdetector_detect (ripple_intdetector_t* detector, int16_t data){
+    const double filtered = rintfilter_update(detector->filter, data);
+    if(rintparams_estimated(detector->params)){
+        return filtered >= rintparams_threshold(detector->params);
     }
     else{
-        rparams_update(detector->params, filtered);
+        rintparams_update(detector->params, filtered);
         return 0;
     }
 }
 
 // Destroy ripple detector
-void rdetector_destroy (ripple_intdetector_t* detector){
-    rfilter_destroy(detector->filter);
-    rparams_destroy(detector->params);
+void rintdetector_destroy (ripple_intdetector_t* detector){
+    rintfilter_destroy(detector->filter);
+    rintparams_destroy(detector->params);
     free(detector);
 }
 
 
-struct _ripple_intmanager_t {
+struct _ripple_manager_t {
     int ntrodes;
     int histlen;
     // double velocity;
@@ -248,11 +256,11 @@ struct _ripple_intmanager_t {
     unsigned char *resultshistory;
 };
 
-ripple_intmanager_t* rmanager_new (int ntrodes, int mindetected, int trainingsamples, int sdthreshold, int samplehistory){
-    ripple_intmanager_t* manager = (ripple_intmanager_t*)malloc(sizeof(ripple_intmanager_t));
-    manager->detectors = (ripple_intmanager_t**)malloc(sizeof(ripple_intmanager_t*)*ntrodes);
+ripple_manager_t* rmanager_new (int ntrodes, int mindetected, int trainingsamples, int sdthreshold, int samplehistory){
+    ripple_manager_t* manager = (ripple_manager_t*)malloc(sizeof(ripple_manager_t));
+    manager->detectors = (ripple_intdetector_t**)malloc(sizeof(ripple_intdetector_t*)*ntrodes);
     for(int i = 0; i < ntrodes; ++i){
-        manager->detectors[i] = rdetector_new(trainingsamples, sdthreshold);
+        manager->detectors[i] = rintdetector_new(trainingsamples, sdthreshold);
     }
 
     manager->ntrodes = ntrodes;
@@ -267,12 +275,12 @@ ripple_intmanager_t* rmanager_new (int ntrodes, int mindetected, int trainingsam
     return manager;
 }
 
-// void rmanager_useposition(ripple_intmanager_t* manager, unsigned char enable, double velocitythresh){
+// void rmanager_useposition(ripple_manager_t* manager, unsigned char enable, double velocitythresh){
 //     manager->useposition = enable;
 //     manager->velthresh = velocitythresh;
 // }
 
-// void rmanager_position(ripple_intmanager_t* manager, int16_t x, int16_t y){
+// void rmanager_position(ripple_manager_t* manager, int16_t x, int16_t y){
 //     const int x2 = (x-manager->prevpoints[0])*(x-manager->prevpoints[0]);
 //     const int y2 = (y-manager->prevpoints[1])*(y-manager->prevpoints[1]);
 //     const double dist1 = sqrt(x2 + y2);
@@ -288,16 +296,16 @@ ripple_intmanager_t* rmanager_new (int ntrodes, int mindetected, int trainingsam
 //     manager->prevpoints[1] = y;
 // }
 
-void rmanager_lfpdata(ripple_intmanager_t* manager, int16_t *data){
+void rmanager_lfpdata(ripple_manager_t* manager, int16_t *data){
     for(int i = 0; i < manager->ntrodes; ++i){
-        const unsigned char result = rdetector_detect(manager->detectors[i], data[i]);
+        const unsigned char result = rintdetector_detect(manager->detectors[i], data[i]);
         unsigned char * const ptr = &manager->resultshistory[i*manager->histlen];
         memmove(ptr+1, ptr, manager->histlen-1);
         *ptr = result;
     }
 }
 
-int rmanager_checkripples(ripple_intmanager_t* manager){
+int rmanager_checkripples(ripple_manager_t* manager){
     // //If using velocity and is too fast, return 0
     // if(manager->useposition && manager->velocity >= manager->velthresh){
     //     return 0;
@@ -315,18 +323,18 @@ int rmanager_checkripples(ripple_intmanager_t* manager){
     return n;
 }
 
-void rmanager_reset(ripple_intmanager_t* manager){
+void rmanager_reset(ripple_manager_t* manager){
     for(int i = 0; i < manager->ntrodes; ++i){
-        rdetector_reset(manager->detectors[i]);
+        rintdetector_reset(manager->detectors[i]);
     }
     // manager->velocity = 0.0;
     memset(manager->prevpoints, 0, sizeof(int16_t)*4);
     memset(manager->resultshistory, 0, sizeof(unsigned char)*manager->ntrodes*manager->histlen);
 }
 
-void rmanager_destroy(ripple_intmanager_t* manager){
+void rmanager_destroy(ripple_manager_t* manager){
     for(int i = 0; i < manager->ntrodes; ++i){
-        rdetector_destroy(manager->detectors[i]);
+        rintdetector_destroy(manager->detectors[i]);
     }
     free(manager->detectors);
     free(manager->resultshistory);
